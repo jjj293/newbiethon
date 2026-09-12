@@ -1,12 +1,7 @@
-import './App.css'
+import MatchingResult from "./components/MatchingResult";
 
 function App() {
-  return (
-    <div className="status-screen">
-      <h1>Frontend is running</h1>
-      <p>Vite + React project skeleton is set up correctly.</p>
-    </div>
-  )
+  return <MatchingResult />;
 }
 
-export default App
+export default App;
