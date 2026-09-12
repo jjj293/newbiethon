@@ -58,7 +58,7 @@ function IconCheck() {
   )
 }
 
-function ProfilePage({ userId }) {
+function ProfilePage({ userId, onSaveSuccess }) {
   const [nickname, setNickname] = useState('')
   const [gender, setGender] = useState(null)
   const [age, setAge] = useState('')
@@ -102,6 +102,7 @@ function ProfilePage({ userId }) {
       if (data.success) {
         setMessageType('success')
         setMessage(data.message || '프로필이 저장되었습니다.')
+        onSaveSuccess?.(nickname.trim())
       } else {
         setMessageType('error')
         setMessage(data.message || '프로필 저장에 실패했습니다.')
