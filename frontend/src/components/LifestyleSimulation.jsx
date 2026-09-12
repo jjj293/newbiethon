@@ -13,7 +13,7 @@ function LifestyleSimulation({ onComplete }) {
     const nextAnswers = {
       ...answers,
       [question.id]: {
-        lifestyleKey: question.lifestyleKey,
+        lifestyle_key: question.lifestyle_key,
         choice: choice.label,
         score: choice.score,
       },

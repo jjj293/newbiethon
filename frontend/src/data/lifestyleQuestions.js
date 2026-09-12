@@ -1,6 +1,6 @@
 // 생활 시뮬레이션 문제 초안.
 // 순서 고정: noise -> cleanliness -> sleep -> privacy -> conflict -> social (항목당 2문제, 총 12문제)
-// 각 문제는 lifestyleKey로 어떤 lifestyle 항목에 해당하는지만 표시하고,
+// 각 문제는 lifestyle_key로 어떤 lifestyle 항목에 해당하는지만 표시하고,
 // 최종 noise/cleanliness/... 점수 합산은 여기서 하지 않는다. (나중에 별도 로직에서 구현)
 // 선택지 점수는 항상 A=2, B=4, C=6, D=8로 고정.
 
@@ -8,7 +8,7 @@ export const lifestyleQuestions = [
   // noise
   {
     id: 'noise_1',
-    lifestyleKey: 'noise',
+    lifestyle_key: 'noise',
     title: '🎮 새벽의 샤워',
     time: '🌙 AM 1:07',
     situation: '내일 아침 9시 수업이 있다.\n침대에 누워 막 잠들려는데,\n룸메이트가 샤워를 시작했다.',
@@ -22,7 +22,7 @@ export const lifestyleQuestions = [
   },
   {
     id: 'noise_2',
-    lifestyleKey: 'noise',
+    lifestyle_key: 'noise',
     title: '🎮 이어폰 없는 게임',
     time: '🌆 PM 11:20',
     situation: '거실에서 공부를 하고 있는데,\n룸메이트가 이어폰 없이 게임 소리를 크게 틀어놓았다.',
@@ -38,7 +38,7 @@ export const lifestyleQuestions = [
   // cleanliness
   {
     id: 'cleanliness_1',
-    lifestyleKey: 'cleanliness',
+    lifestyle_key: 'cleanliness',
     title: '🎮 쌓여가는 설거지',
     time: '🍽️ PM 8:00',
     situation: '퇴근 후 집에 왔더니,\n싱크대에 룸메이트가 사용한 그릇이 3일째 쌓여 있다.',
@@ -52,7 +52,7 @@ export const lifestyleQuestions = [
   },
   {
     id: 'cleanliness_2',
-    lifestyleKey: 'cleanliness',
+    lifestyle_key: 'cleanliness',
     title: '🎮 먼지 쌓인 거실',
     time: '🧹 PM 3:00',
     situation: '일주일째 공용 거실 청소가 되어 있지 않다.\n바닥에 먼지와 머리카락이 눈에 띈다.',
@@ -68,7 +68,7 @@ export const lifestyleQuestions = [
   // sleep
   {
     id: 'sleep_1',
-    lifestyleKey: 'sleep',
+    lifestyle_key: 'sleep',
     title: '🎮 이른 아침의 알람',
     time: '🌅 AM 6:30',
     situation: '아직 한참 자야 할 시간인데,\n룸메이트의 알람 소리와 인기척에 잠이 깼다.',
@@ -82,7 +82,7 @@ export const lifestyleQuestions = [
   },
   {
     id: 'sleep_2',
-    lifestyleKey: 'sleep',
+    lifestyle_key: 'sleep',
     title: '🎮 꺼지지 않는 불빛',
     time: '🌌 AM 2:00',
     situation: '나는 일찍 자는 편인데,\n룸메이트는 매일 새벽까지 불을 켜두고 활동한다.',
@@ -98,7 +98,7 @@ export const lifestyleQuestions = [
   // privacy
   {
     id: 'privacy_1',
-    lifestyleKey: 'privacy',
+    lifestyle_key: 'privacy',
     title: '🎮 말없이 쓴 내 물건',
     time: '🧴 PM 7:40',
     situation: '내 샴푸랑 화장품이 줄어들어 있다.\n룸메이트가 허락 없이 쓴 것 같다.',
@@ -112,7 +112,7 @@ export const lifestyleQuestions = [
   },
   {
     id: 'privacy_2',
-    lifestyleKey: 'privacy',
+    lifestyle_key: 'privacy',
     title: '🎮 노크 없는 방문',
     time: '🚪 PM 9:15',
     situation: '혼자 있고 싶어서 방문을 닫아두었는데,\n룸메이트가 노크 없이 불쑥 들어왔다.',
@@ -128,7 +128,7 @@ export const lifestyleQuestions = [
   // conflict
   {
     id: 'conflict_1',
-    lifestyleKey: 'conflict',
+    lifestyle_key: 'conflict',
     title: '🎮 사소한 말다툼',
     time: '💬 PM 6:00',
     situation: '사소한 일로 룸메이트와 말다툼이 생겼다.\n분위기가 조금 어색해졌다.',
@@ -142,7 +142,7 @@ export const lifestyleQuestions = [
   },
   {
     id: 'conflict_2',
-    lifestyleKey: 'conflict',
+    lifestyle_key: 'conflict',
     title: '🎮 어긴 약속',
     time: '📋 PM 5:00',
     situation: '이번 주 청소 당번은 룸메이트였는데,\n약속한 날이 지나도 하지 않았다.',
@@ -158,7 +158,7 @@ export const lifestyleQuestions = [
   // social
   {
     id: 'social_1',
-    lifestyleKey: 'social',
+    lifestyle_key: 'social',
     title: '🎮 함께하는 저녁',
     time: '🍜 PM 7:00',
     situation: '룸메이트가 오늘 저녁을 같이 먹자고 제안했다.\n딱히 계획은 없었다.',
@@ -172,7 +172,7 @@ export const lifestyleQuestions = [
   },
   {
     id: 'social_2',
-    lifestyleKey: 'social',
+    lifestyle_key: 'social',
     title: '🎮 놀러온 친구들',
     time: '🎉 PM 9:00',
     situation: '룸메이트의 친구들이 집에 놀러 왔고,\n같이 어울리자고 권유한다.',
