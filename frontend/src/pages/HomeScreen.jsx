@@ -117,7 +117,7 @@ export default function HomeScreen({
   const closeSub = () => setSubScreen(null)
 
   if (subScreen === 'matching') {
-    return <MatchingResult onBack={closeSub} />
+    return <MatchingResult onBack={closeSub} nickname={user.nickname} />
   }
 
   if (subScreen) {
