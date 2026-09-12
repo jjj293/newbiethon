@@ -47,7 +47,7 @@ function buildProfileUpdatePayload(existingUser, lifestyleAnswers, housingCondit
 
 // user_id는 로그인 파트(LoginPage/auth)에서 발급된 값을 그대로 전달받아 사용한다.
 // 이 페이지에서는 user_id를 생성하지 않는다.
-function LifestylePreferencesPage({ user_id }) {
+function LifestylePreferencesPage({ user_id, onComplete }) {
   const [step, setStep] = useState('lifestyle') // 'lifestyle' | 'preferences'
   const [lifestyleAnswers, setLifestyleAnswers] = useState(null)
   const [status, setStatus] = useState('idle') // 'idle' | 'submitting' | 'success' | 'error'
@@ -65,6 +65,7 @@ function LifestylePreferencesPage({ user_id }) {
       const payload = buildProfileUpdatePayload(existingUser, lifestyleAnswers, housingConditions)
       await updateUserProfile(user_id, payload)
       setStatus('success')
+      onComplete?.()
     } catch (error) {
       setErrorMessage(error.message)
       setStatus('error')
