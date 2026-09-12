@@ -39,8 +39,19 @@ const COLORS = {
   badge: '#D4537E',
 }
 
-export default function HomeScreen({ user = dummyUser, counts = dummyCounts }) {
+export default function HomeScreen({ user = dummyUser, counts = dummyCounts, onStartSimulation }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+
+  // 프로필(시뮬레이션)을 아직 안 끝낸 사용자에게는 타일을 전부 숨기고
+  // 시뮬레이션으로 보내는 화면만 보여준다.
+  if (!user.profile_completed) {
+    return (
+      <div style={styles.page}>
+        <Header nickname={user.nickname} showActions={false} />
+        <LockedHome onStartSimulation={onStartSimulation} />
+      </div>
+    )
+  }
 
   return (
     <div style={styles.page}>
@@ -81,7 +92,22 @@ export default function HomeScreen({ user = dummyUser, counts = dummyCounts }) {
   )
 }
 
-function Header({ nickname, unreadCount, notificationsOpen, onToggleNotifications }) {
+function LockedHome({ onStartSimulation }) {
+  return (
+    <div style={styles.lockedArea}>
+      <div style={styles.lockedIconBox}>
+        <PuzzleIcon color={COLORS.green} />
+      </div>
+      <p style={styles.lockedTitle}>아직 프로필이 완성되지 않았어요</p>
+      <p style={styles.lockedDesc}>시뮬레이션을 마치면 매칭을 시작할 수 있어요.</p>
+      <button type="button" style={styles.lockedButton} onClick={onStartSimulation}>
+        시뮬레이션으로 프로필 완성하기
+      </button>
+    </div>
+  )
+}
+
+function Header({ nickname, unreadCount, notificationsOpen, onToggleNotifications, showActions = true }) {
   return (
     <header style={styles.header}>
       <div style={styles.profileArea}>
@@ -89,23 +115,25 @@ function Header({ nickname, unreadCount, notificationsOpen, onToggleNotification
         <span style={styles.nickname}>{nickname} 님</span>
       </div>
 
-      <div style={styles.headerActions}>
-        <button
-          type="button"
-          onClick={onToggleNotifications}
-          style={{
-            ...styles.iconButton,
-            ...(notificationsOpen ? styles.iconButtonActive : {}),
-          }}
-        >
-          <BellIcon color={notificationsOpen ? '#FFFFFF' : COLORS.text} />
-          {unreadCount > 0 && <span style={styles.headerBadge}>{unreadCount}</span>}
-        </button>
+      {showActions && (
+        <div style={styles.headerActions}>
+          <button
+            type="button"
+            onClick={onToggleNotifications}
+            style={{
+              ...styles.iconButton,
+              ...(notificationsOpen ? styles.iconButtonActive : {}),
+            }}
+          >
+            <BellIcon color={notificationsOpen ? '#FFFFFF' : COLORS.text} />
+            {unreadCount > 0 && <span style={styles.headerBadge}>{unreadCount}</span>}
+          </button>
 
-        <button type="button" style={styles.iconButton}>
-          <GearIcon color={COLORS.text} />
-        </button>
-      </div>
+          <button type="button" style={styles.iconButton}>
+            <GearIcon color={COLORS.text} />
+          </button>
+        </div>
+      )}
     </header>
   )
 }
@@ -156,6 +184,23 @@ function HeartIcon({ color }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  )
+}
+
+function PuzzleIcon({ color }) {
+  return (
+    <svg
+      width="36"
+      height="36"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M19.44 7.85c-.05.32.06.65.29.88l1.57 1.57c.47.47.7 1.09.7 1.7s-.23 1.24-.7 1.71l-1.62 1.61a.98.98 0 0 1-.83.28c-.47-.07-.8-.48-.97-.93a2.5 2.5 0 1 0-3.21 3.22c.44.16.85.5.92.97a.98.98 0 0 1-.27.83l-1.61 1.61c-.47.47-1.09.71-1.71.71s-1.23-.24-1.7-.71l-1.57-1.57a1.03 1.03 0 0 0-.88-.29c-.49.08-.84.51-1.02.97a2.5 2.5 0 1 1-3.24-3.24c.47-.18.9-.53.97-1.02a1.03 1.03 0 0 0-.29-.88l-1.57-1.57A2.4 2.4 0 0 1 2 12c0-.62.24-1.24.71-1.7L4.23 8.77c.24-.24.58-.36.92-.31.51.08.88.53 1.07 1.01a2.5 2.5 0 1 0 3.26-3.26c-.48-.19-.93-.56-1.01-1.07a1.03 1.03 0 0 1 .3-.92l1.53-1.52A2.4 2.4 0 0 1 12 2c.62 0 1.23.24 1.7.71l1.57 1.57c.23.23.56.34.88.29.49-.08.84-.51 1.02-.97a2.5 2.5 0 1 1 3.24 3.24c-.47.18-.9.53-.97 1.01z" />
     </svg>
   )
 }
@@ -253,6 +298,37 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     boxSizing: 'border-box',
+  },
+  lockedArea: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    textAlign: 'center',
+    paddingTop: 72,
+  },
+  lockedIconBox: {
+    width: 76,
+    height: 76,
+    borderRadius: 22,
+    background: COLORS.text,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  lockedTitle: { fontSize: 17, fontWeight: 700, color: COLORS.text },
+  lockedDesc: { fontSize: 14, color: COLORS.textSub, marginTop: 8 },
+  lockedButton: {
+    marginTop: 24,
+    background: COLORS.text,
+    color: '#FFFFFF',
+    border: 'none',
+    borderRadius: 14,
+    padding: '14px 22px',
+    fontSize: 15,
+    fontWeight: 700,
+    fontFamily: 'inherit',
+    cursor: 'pointer',
   },
   matchTile: {
     width: '100%',
