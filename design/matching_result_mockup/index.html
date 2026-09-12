@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<title>매칭 결과 화면</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap">
+<style>
+  :root {
+    --canvas: #f2efe8;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --text-muted: #8a8a8a;
+    --point-green: #a8e56c;
+    --point-green-tint: #eaf7db;
+    --point-green-text: #4c7a24;
+    --point-pink: #ffb4c6;
+    --point-pink-tint: #ffeef2;
+    --point-pink-text: #b23a5c;
+    --point-yellow: #ffe07d;
+    --point-blue: #8fd9ff;
+    --point-blue-tint: #e7f7ff;
+    --point-blue-text: #2c7ea6;
+    --border: #eeece4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--canvas);
+    font-family: -apple-system, 'Apple SD Gothic Neo', system-ui, 'Malgun Gothic', sans-serif;
+    color: var(--text);
+    padding: 2.5rem 1rem;
+    display: flex;
+    justify-content: center;
+  }
+  .frame-label {
+    font-size: 13px;
+    color: #9c9686;
+    text-align: center;
+    margin: 0 0 14px;
+  }
+  .phone {
+    width: 380px;
+  }
+  .card {
+    background: var(--card);
+    border-radius: 26px;
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+  }
+  .avatar-shell {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: #efece2;
+    flex-shrink: 0;
+  }
+  .header-name {
+    font-size: 15px;
+    font-weight: 600;
+    flex: 1;
+  }
+  .icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    background: #f5f3ec;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--text);
+  }
+  .page-title {
+    font-family: 'Jua', sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    margin: 4px 0 2px;
+  }
+  .page-sub {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    margin: 0 0 18px;
+  }
+  .section {
+    margin-bottom: 22px;
+  }
+  .section:last-child { margin-bottom: 0; }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .section-badge {
+    font-family: 'Jua', sans-serif;
+    font-size: 15px;
+    padding: 3px 12px;
+    border-radius: 999px;
+  }
+  .section-badge.green { background: var(--point-green); color: var(--point-green-text); }
+  .section-badge.blue { background: var(--point-blue); color: var(--point-blue-text); }
+  .section-desc {
+    font-size: 11.5px;
+    color: var(--text-muted);
+  }
+  .rank-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .rank-card {
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid var(--border);
+  }
+  .rank-badge {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Jua', sans-serif;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .rank-badge.r1.green { background: var(--point-green); color: var(--point-green-text); }
+  .rank-badge.r2.green, .rank-badge.r3.green { background: var(--point-green-tint); color: var(--point-green-text); }
+  .rank-badge.r1.blue { background: var(--point-blue); color: var(--point-blue-text); }
+  .rank-badge.r2.blue, .rank-badge.r3.blue { background: var(--point-blue-tint); color: var(--point-blue-text); }
+  .rank-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .rank-body { flex: 1; min-width: 0; }
+  .rank-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .rank-name {
+    font-size: 14.5px;
+    font-weight: 600;
+  }
+  .rank-scores {
+    display: flex;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .score-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .score-pill.match { background: var(--point-green-tint); color: var(--point-green-text); }
+  .score-pill.comp { background: var(--point-blue-tint); color: var(--point-blue-text); }
+  .point-list {
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .point-list li {
+    font-size: 12px;
+    line-height: 1.45;
+    display: flex;
+    gap: 6px;
+  }
+  .point-list li.strength { color: var(--point-green-text); }
+  .point-list li.risk { color: var(--point-pink-text); }
+  .point-list li span.text { color: var(--text); }
+  .point-list li .mark { flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="phone">
+  <p class="frame-label">C. 매칭 결과 (매칭 순위 위 + 보완 순위 아래)</p>
+  <div class="card">
+    <div class="header">
+      <div class="avatar-shell"></div>
+      <div class="header-name">민서 님</div>
+      <div class="icon-btn">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <div class="icon-btn">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </div>
+    </div>
+
+    <h1 class="page-title">매칭 결과</h1>
+    <p class="page-sub">성향 분석이 끝났어요. 이런 분들은 어떠세요?</p>
+
+    <div class="section">
+      <div class="section-head">
+        <span class="section-badge green">매칭 순위</span>
+        <span class="section-desc">성향이 비슷해서 잘 맞는 상대</span>
+      </div>
+      <div class="rank-list">
+
+        <div class="rank-card">
+          <div class="rank-badge r1 green">1</div>
+          <div class="rank-avatar" style="background:var(--point-green-tint)">서</div>
+          <div class="rank-body">
+            <div class="rank-row">
+              <span class="rank-name">서연 님</span>
+              <span class="rank-scores">
+                <span class="score-pill match">매칭 95</span>
+                <span class="score-pill comp">보완 81</span>
+              </span>
+            </div>
+            <ul class="point-list">
+              <li class="strength"><span class="mark">+</span><span class="text">소음에 대한 기준이 비슷해 생활 소음 문제로 갈등이 생길 가능성이 낮아요.</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="rank-card">
+          <div class="rank-badge r2 green">2</div>
+          <div class="rank-avatar" style="background:var(--point-green-tint)">하</div>
+          <div class="rank-body">
+            <div class="rank-row">
+              <span class="rank-name">하은 님</span>
+              <span class="rank-scores">
+                <span class="score-pill match">매칭 90</span>
+                <span class="score-pill comp">보완 76</span>
+              </span>
+            </div>
+            <ul class="point-list">
+              <li class="strength"><span class="mark">+</span><span class="text">청결 기준이 비슷해 청소나 정리정돈 방식이 잘 맞을 가능성이 높아요.</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="rank-card">
+          <div class="rank-badge r3 green">3</div>
+          <div class="rank-avatar" style="background:var(--point-green-tint)">지</div>
+          <div class="rank-body">
+            <div class="rank-row">
+              <span class="rank-name">지우 님</span>
+              <span class="rank-scores">
+                <span class="score-pill match">매칭 90</span>
+                <span class="score-pill comp">보완 76</span>
+              </span>
+            </div>
+            <ul class="point-list">
+              <li class="strength"><span class="mark">+</span><span class="text">개인 공간에 대한 기준이 비슷해 서로 편안하게 생활할 가능성이 높아요.</span></li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <span class="section-badge blue">보완 순위</span>
+        <span class="section-desc">다른 성향이 서로 보완되는 상대</span>
+      </div>
+      <div class="rank-list">
+
+        <div class="rank-card">
+          <div class="rank-badge r1 blue">1</div>
+          <div class="rank-avatar" style="background:var(--point-blue-tint)">서</div>
+          <div class="rank-body">
+            <div class="rank-row">
+              <span class="rank-name">서연 님</span>
+              <span class="rank-scores">
+                <span class="score-pill match">매칭 95</span>
+                <span class="score-pill comp">보완 81</span>
+              </span>
+            </div>
+            <ul class="point-list">
+              <li class="strength"><span class="mark">+</span><span class="text">생활 및 수면 패턴이 비슷해 함께 생활하기 편할 가능성이 높아요.</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="rank-card">
+          <div class="rank-badge r2 blue">2</div>
+          <div class="rank-avatar" style="background:var(--point-blue-tint)">도</div>
+          <div class="rank-body">
+            <div class="rank-row">
+              <span class="rank-name">도윤 님</span>
+              <span class="rank-scores">
+                <span class="score-pill match">매칭 70</span>
+                <span class="score-pill comp">보완 81</span>
+              </span>
+            </div>
+            <ul class="point-list">
+              <li class="strength"><span class="mark">+</span><span class="text">소음 민감도와 수면 패턴이 잘 맞아 늦은 시간 생활로 인한 충돌 가능성이 낮아요.</span></li>
+              <li class="risk"><span class="mark">-</span><span class="text">소음 민감도 차이가 커 생활 소음으로 갈등이 생길 수 있어요.</span></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="rank-card">
+          <div class="rank-badge r3 blue">3</div>
+          <div class="rank-avatar" style="background:var(--point-blue-tint)">예</div>
+          <div class="rank-body">
+            <div class="rank-row">
+              <span class="rank-name">예은 님</span>
+              <span class="rank-scores">
+                <span class="score-pill match">매칭 56</span>
+                <span class="score-pill comp">보완 72</span>
+              </span>
+            </div>
+            <ul class="point-list">
+              <li class="strength"><span class="mark">+</span><span class="text">함께 지내고 교류하는 정도에 대한 선호가 비슷해요.</span></li>
+              <li class="risk"><span class="mark">-</span><span class="text">개인 공간에 대한 요구 수준이 달라 한 사람이 불편함을 느낄 수 있어요.</span></li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>
