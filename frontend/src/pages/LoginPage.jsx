@@ -56,15 +56,17 @@ function LoginPage({ onLoginSuccess }) {
 
   return (
     <div className="status-screen">
-      <h1>로그인</h1>
+      <h1 className="login-title">로그인</h1>
       <div className="login-form">
         <input
+          className="login-input login-input--id"
           type="text"
           placeholder="ID"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
         <input
+          className="login-input login-input--password"
           type="password"
           placeholder="PW"
           value={password}

@@ -1,0 +1,18 @@
+
+    /* 사용중인 산돌구름 웹폰트 라이선스의 인증을 실패하였습니다. 
+       산돌구름 웹폰트 사이트의 프로젝트 관리 메뉴에서 도메인 또는 개발서버 IP주소를 추가로 등록해 주세요. 
+       더이상 사용하지 않으실 경우 태그를 삭제하여 주시기 바랍니다. 
+       자세한 내용은 https://www.sandollcloud.com/webfont/ 을 방문해 주세요. 
+       The authentication of the SandollCloud web font license you are using has failed. 
+       Please register additional domain or development server IP addresses in the project management menu on the SandollCloud webfont site. 
+       Please remove the tag if you no longer intend to use our service. 
+       Visit https://www.sandollcloud.com/webfont/ for more details.
+    */
+
+    body::after {
+        content: "The authentication of the SandollCloud web font license you are using has failed. Please remove the tag or visit https://www.sandollcloud.com/webfont/ for more details.";
+        display: block;
+        font-size: 5px;
+        opacity: 0.01;
+    }
+    
