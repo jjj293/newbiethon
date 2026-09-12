@@ -2,6 +2,7 @@
 FastAPI 애플리케이션 진입점.
 """
 
+import os
 from typing import List
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -19,9 +20,14 @@ Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Roommate Matching API")
 
+allow_origins = ["http://localhost:5173", "http://127.0.0.1:5173"]
+frontend_origin = os.environ.get("FRONTEND_ORIGIN")
+if frontend_origin:
+    allow_origins.append(frontend_origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=allow_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
