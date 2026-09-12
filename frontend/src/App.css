@@ -7,3 +7,37 @@
   gap: 12px;
   text-align: center;
 }
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 260px;
+}
+
+.login-form input {
+  padding: 8px 10px;
+  font-size: 15px;
+}
+
+.login-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.login-actions button {
+  flex: 1;
+}
+
+.message {
+  margin: 0;
+  font-size: 14px;
+}
+
+.message.success {
+  color: green;
+}
+
+.message.error {
+  color: red;
+}
