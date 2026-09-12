@@ -1,3 +1,8 @@
+import { useState } from 'react'
+import MatchingResult from './MatchingResult'
+import RequestsScreen from './RequestsScreen'
+import { COLORS } from './theme'
+
 /* ============================================================
    홈 화면 (D 담당)
 
@@ -26,31 +31,52 @@ const dummyUser = {
   profile_completed: true,
 }
 
-const dummyCounts = {
-  received_requests: 2,
-  sent_requests: 1,
-  matched_partners: 1,
-}
+// 타일 숫자와 하위 화면이 같은 목록을 보도록 여기에 둔다.
+const dummyReceived = [
+  {
+    request_id: 1,
+    from_user_id: 2,
+    nickname: '지우',
+    age: 23,
+    gender: '여',
+    score: 79,
+    good_point_preview: '예산이 겹쳐요',
+    status: 'pending',
+    // 실제로는 매칭 성사 후에만 서버가 내려줘야 하는 값
+    contact: { type: 'kakao', value: 'jiwoo_room' },
+  },
+  {
+    request_id: 2,
+    from_user_id: 5,
+    nickname: '하은',
+    age: 20,
+    gender: '여',
+    score: 84,
+    good_point_preview: '흡연 기준이 같아요',
+    status: 'pending',
+    contact: { type: 'kakao', value: 'haeun_00' },
+  },
+]
 
-export const COLORS = {
-  bg: '#FFFFFF',
-  text: '#1A1A1A',
-  textSub: '#8A8A8A',
-  sectionBg: '#F1EFE8',
-  green: '#A8E56C',
-  greenText: '#2E4D14',
-  pink: '#FFB4C6',
-  pinkText: '#7A2942',
-  sky: '#8FD9FF',
-  skyText: '#0B4B66',
-  yellow: '#FFE07D',
-  yellowText: '#6B4A05',
-  badge: '#D4537E',
-}
+const dummySent = [
+  { request_id: 11, to_user_id: 3, nickname: '서연', age: 22, gender: '여', status: 'pending' },
+  { request_id: 12, to_user_id: 4, nickname: '고요한숲', age: 21, gender: '여', status: 'accepted' },
+  { request_id: 13, to_user_id: 6, nickname: '든든한바위', age: 21, gender: '여', status: 'declined' },
+]
+
+const dummyMatched = [
+  {
+    user_id: 4,
+    nickname: '고요한숲',
+    age: 21,
+    gender: '여',
+    score: 92,
+    contact: { type: 'kakao', value: 'soonsoon_forest' },
+  },
+]
 
 export default function HomeScreen({
   user = dummyUser,
-  counts = dummyCounts,
   onStartSimulation,
   onGoMatching,
   onGoReceived,
@@ -58,6 +84,56 @@ export default function HomeScreen({
   onGoMatched,
   onOpenSettings,
 }) {
+  // 요청 목록은 여기서 들고 있는다. 하위 화면이 각자 복사해 두면 화면을 오갈 때마다
+  // 수락/거절 결과가 사라지고, 타일 숫자도 실제 목록과 어긋난다.
+  const [received, setReceived] = useState(dummyReceived)
+  const [sent] = useState(dummySent)
+  const [matched, setMatched] = useState(dummyMatched)
+  // App.jsx 가 라우팅을 넘겨주기 전까지는 이 화면이 직접 하위 화면을 그린다.
+  // 나중에 A 가 onGo* props 를 넘기면 그쪽이 우선한다.
+  const [subScreen, setSubScreen] = useState(null)
+
+  const acceptRequest = (person) => {
+    setReceived((prev) => prev.filter((r) => r.request_id !== person.request_id))
+    setMatched((prev) => [
+      ...prev,
+      {
+        // match_id 는 서버가 발급하는 값이라 프론트에서 만들지 않는다.
+        // 한 사람은 매칭 목록에 한 번만 들어가므로 화면에서는 user_id 로 식별한다.
+        user_id: person.from_user_id,
+        nickname: person.nickname,
+        age: person.age,
+        gender: person.gender,
+        score: person.score,
+        contact: person.contact,
+      },
+    ])
+  }
+
+  const declineRequest = (person) =>
+    setReceived((prev) => prev.filter((r) => r.request_id !== person.request_id))
+
+  const openSub = (name) => () => setSubScreen(name)
+  const closeSub = () => setSubScreen(null)
+
+  if (subScreen === 'matching') {
+    return <MatchingResult onBack={closeSub} />
+  }
+
+  if (subScreen) {
+    return (
+      <RequestsScreen
+        view={subScreen}
+        received={received}
+        sent={sent}
+        matched={matched}
+        onAccept={acceptRequest}
+        onDecline={declineRequest}
+        onBack={closeSub}
+      />
+    )
+  }
+
   // 프로필(시뮬레이션)을 아직 안 끝낸 사용자에게는 타일을 전부 숨기고
   // 시뮬레이션으로 보내는 화면만 보여준다.
   if (!user.profile_completed) {
@@ -73,7 +149,11 @@ export default function HomeScreen({
     <div style={styles.page}>
       <Header nickname={user.nickname} onOpenSettings={onOpenSettings} />
 
-      <button type="button" style={styles.matchTile} onClick={onGoMatching}>
+      <button
+        type="button"
+        style={styles.matchTile}
+        onClick={onGoMatching ?? openSub('matching')}
+      >
         <SearchIcon color={COLORS.greenText} />
         <span style={{ ...styles.tileLabel, color: COLORS.greenText }}>매칭하러가기</span>
       </button>
@@ -83,25 +163,25 @@ export default function HomeScreen({
           label="받은 요청"
           background={COLORS.pink}
           color={COLORS.pinkText}
-          badge={counts.received_requests}
+          badge={received.length}
           icon={<EnvelopeIcon color={COLORS.pinkText} />}
-          onClick={onGoReceived}
+          onClick={onGoReceived ?? openSub('received')}
         />
         <SmallTile
           label="보낸 요청"
           background={COLORS.sky}
           color={COLORS.skyText}
-          badge={counts.sent_requests}
+          badge={sent.length}
           icon={<SendIcon color={COLORS.skyText} />}
-          onClick={onGoSent}
+          onClick={onGoSent ?? openSub('sent')}
         />
         <SmallTile
           label="매칭된 상대"
           background={COLORS.yellow}
           color={COLORS.yellowText}
-          badge={counts.matched_partners}
+          badge={matched.length}
           icon={<HeartIcon color={COLORS.yellowText} />}
-          onClick={onGoMatched}
+          onClick={onGoMatched ?? openSub('matched')}
         />
       </div>
     </div>
