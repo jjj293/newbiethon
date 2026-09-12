@@ -42,3 +42,7 @@ export async function getUser(userId) {
 export function updateUserProfile(userId, payload) {
   return putJson(`/users/${userId}`, payload)
 }
+
+export function saveProfile(payload) {
+  return postJson('/profile', payload)
+}

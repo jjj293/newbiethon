@@ -13,6 +13,7 @@ import schemas
 from app import router as auth_router
 from database import Base, engine, get_db
 from matching import BudgetRange, LifestyleScores, UserProfile, find_top_matches
+from profile_routes import router as profile_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -28,6 +29,7 @@ app.add_middleware(
 # app.py에 있던 로그인/회원가입 라우트(/health, /auth/register, /auth/login)를
 # 매칭 API와 같은 서버에 합친다.
 app.include_router(auth_router)
+app.include_router(profile_router)
 
 
 def _get_user_or_404(db: Session, user_id: str) -> models.User:

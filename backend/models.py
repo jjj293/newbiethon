@@ -18,6 +18,7 @@ class User(Base):
     password_hash = Column(String, nullable=True)
 
     # 프로필 정보. 온보딩(설문) 전에는 전부 비어있을 수 있어서 nullable로 둔다.
+    nickname = Column(String, nullable=True)
     gender = Column(String, nullable=True)
     age = Column(Integer, nullable=True)
     is_smoker = Column(Boolean, nullable=True)
