@@ -1,14 +1,22 @@
-import { useState } from 'react'
-
 /* ============================================================
    홈 화면 (D 담당)
 
-   ⚠️ 임시 데이터 — 확정 API 아님.
-   아래 dummyUser / dummyCounts 는 전부 더미이며, 실제 연동 시
-   A(전체 연결 담당)와 아래 항목을 먼저 합의해야 함.
-     - 홈 진입 시 사용자 요약 정보를 주는 endpoint/method
-     - 프로필 완성 여부 판단 필드명 (지금은 profile_completed 로 가정)
-     - 받은 요청 개수 / 안 읽은 알림 개수를 홈에서 같이 내려줄지 여부
+   ⚠️ 임시 데이터 — 확정 API 아님. 아래 dummy* 는 전부 더미다.
+   이 화면을 실제 데이터로 채우려면 다른 담당자 작업이 먼저 필요하다.
+
+   [C/백엔드에 필요한 것]
+   1. GET /users/{user_id} 응답에 nickname 추가
+      - DB(users.nickname)에는 이미 저장되는데 schemas.UserOut 에 필드가 없어서
+        프론트가 닉네임을 읽어올 수 없다. 헤더의 "OO 님" 이 여기서 막혀 있음.
+   2. 요청 관련 API 가 아직 없음. 타일 우측 상단 숫자를 채우려면
+      받은 요청 / 보낸 요청 / 매칭 성사된 상대의 개수가 필요하다.
+
+   [A/App.jsx 에 필요한 것]
+   3. 이 컴포넌트는 아직 App.jsx 에 연결되어 있지 않다.
+      아래 props 에 화면 전환만 연결하면 된다.
+      user / counts / onStartSimulation / onGoMatching /
+      onGoReceived / onGoSent / onGoMatched / onOpenSettings
+
    팀 규칙에 따라 사용자 식별자는 user_id, 서버와 주고받는 필드는
    snake_case 로 맞춰 둠.
 ============================================================ */
@@ -20,51 +28,8 @@ const dummyUser = {
 
 const dummyCounts = {
   received_requests: 2,
-}
-
-// ⚠️ 임시 데이터 — 확정 API 아님.
-// created_at 은 서버가 주는 값을 가정하고, 화면에서는 상대 시간으로 변환해 보여준다.
-// type 은 request_received / request_accepted 두 가지만 우선 처리.
-const now = Date.now()
-const dummyNotifications = [
-  {
-    notification_id: 1,
-    type: 'request_received',
-    from_user_id: 2,
-    from_nickname: '지우',
-    created_at: new Date(now - 30 * 1000).toISOString(),
-    is_read: false,
-  },
-  {
-    notification_id: 2,
-    type: 'request_accepted',
-    from_user_id: 3,
-    from_nickname: '서연',
-    created_at: new Date(now - 10 * 60 * 1000).toISOString(),
-    is_read: false,
-  },
-  {
-    notification_id: 3,
-    type: 'request_received',
-    from_user_id: 4,
-    from_nickname: '하은',
-    created_at: new Date(now - 60 * 60 * 1000).toISOString(),
-    is_read: true,
-  },
-]
-
-function formatRelativeTime(isoString) {
-  const minutes = Math.floor((Date.now() - new Date(isoString).getTime()) / 60000)
-  if (minutes < 1) return '방금 전'
-  if (minutes < 60) return `${minutes}분 전`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}시간 전`
-  return `${Math.floor(hours / 24)}일 전`
-}
-
-function notificationMessage({ type, from_nickname }) {
-  if (type === 'request_accepted') return `${from_nickname} 님이 요청을 수락했어요`
-  return `${from_nickname} 님이 요청을 보냈어요`
+  sent_requests: 1,
+  matched_partners: 1,
 }
 
 export const COLORS = {
@@ -81,7 +46,6 @@ export const COLORS = {
   yellow: '#FFE07D',
   yellowText: '#6B4A05',
   badge: '#D4537E',
-  unreadBg: '#FCE8EF',
 }
 
 export default function HomeScreen({
@@ -94,13 +58,6 @@ export default function HomeScreen({
   onGoMatched,
   onOpenSettings,
 }) {
-  const [notificationsOpen, setNotificationsOpen] = useState(false)
-  const [notifications, setNotifications] = useState(dummyNotifications)
-
-  const unreadCount = notifications.filter((n) => !n.is_read).length
-  const markAllRead = () =>
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
-
   // 프로필(시뮬레이션)을 아직 안 끝낸 사용자에게는 타일을 전부 숨기고
   // 시뮬레이션으로 보내는 화면만 보여준다.
   if (!user.profile_completed) {
@@ -114,15 +71,7 @@ export default function HomeScreen({
 
   return (
     <div style={styles.page}>
-      <Header
-        nickname={user.nickname}
-        unreadCount={unreadCount}
-        notificationsOpen={notificationsOpen}
-        onToggleNotifications={() => setNotificationsOpen((prev) => !prev)}
-        notifications={notifications}
-        onMarkAllRead={markAllRead}
-        onOpenSettings={onOpenSettings}
-      />
+      <Header nickname={user.nickname} onOpenSettings={onOpenSettings} />
 
       <button type="button" style={styles.matchTile} onClick={onGoMatching}>
         <SearchIcon color={COLORS.greenText} />
@@ -142,6 +91,7 @@ export default function HomeScreen({
           label="보낸 요청"
           background={COLORS.sky}
           color={COLORS.skyText}
+          badge={counts.sent_requests}
           icon={<SendIcon color={COLORS.skyText} />}
           onClick={onGoSent}
         />
@@ -149,6 +99,7 @@ export default function HomeScreen({
           label="매칭된 상대"
           background={COLORS.yellow}
           color={COLORS.yellowText}
+          badge={counts.matched_partners}
           icon={<HeartIcon color={COLORS.yellowText} />}
           onClick={onGoMatched}
         />
@@ -172,50 +123,7 @@ function LockedHome({ onStartSimulation }) {
   )
 }
 
-function NotificationDropdown({ notifications, onMarkAllRead }) {
-  // 최신순 정렬. 서버가 정렬해서 주더라도 화면에서 한 번 더 보장한다.
-  const sorted = [...notifications].sort(
-    (a, b) => new Date(b.created_at) - new Date(a.created_at)
-  )
-
-  return (
-    <div style={styles.dropdown}>
-      <div style={styles.dropdownHeader}>
-        <span style={styles.dropdownTitle}>알림</span>
-        <button type="button" style={styles.markAllButton} onClick={onMarkAllRead}>
-          모두 읽음
-        </button>
-      </div>
-
-      {sorted.map((item) => (
-        <div
-          key={item.notification_id}
-          style={{
-            ...styles.notificationItem,
-            background: item.is_read ? COLORS.sectionBg : COLORS.unreadBg,
-          }}
-        >
-          <div style={styles.notificationAvatar} />
-          <div>
-            <p style={styles.notificationText}>{notificationMessage(item)}</p>
-            <p style={styles.notificationTime}>{formatRelativeTime(item.created_at)}</p>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function Header({
-  nickname,
-  unreadCount,
-  notificationsOpen,
-  onToggleNotifications,
-  notifications,
-  onMarkAllRead,
-  onOpenSettings,
-  showActions = true,
-}) {
+function Header({ nickname, onOpenSettings, showActions = true }) {
   return (
     <header style={styles.header}>
       <div style={styles.profileArea}>
@@ -224,27 +132,9 @@ function Header({
       </div>
 
       {showActions && (
-        <div style={styles.headerActions}>
-          <button
-            type="button"
-            onClick={onToggleNotifications}
-            style={{
-              ...styles.iconButton,
-              ...(notificationsOpen ? styles.iconButtonActive : {}),
-            }}
-          >
-            <BellIcon color={notificationsOpen ? '#FFFFFF' : COLORS.text} />
-            {unreadCount > 0 && <span style={styles.headerBadge}>{unreadCount}</span>}
-          </button>
-
-          <button type="button" style={styles.iconButton} onClick={onOpenSettings}>
-            <GearIcon color={COLORS.text} />
-          </button>
-
-          {notificationsOpen && (
-            <NotificationDropdown notifications={notifications} onMarkAllRead={onMarkAllRead} />
-          )}
-        </div>
+        <button type="button" style={styles.iconButton} onClick={onOpenSettings}>
+          <GearIcon color={COLORS.text} />
+        </button>
       )}
     </header>
   )
@@ -317,19 +207,6 @@ function PuzzleIcon({ color }) {
   )
 }
 
-function BellIcon({ color }) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2">
-      <path
-        d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M10.5 19a1.8 1.8 0 0 0 3 0" strokeLinecap="round" />
-    </svg>
-  )
-}
-
 function GearIcon({ color }) {
   return (
     <svg
@@ -379,53 +256,6 @@ const styles = {
     flexShrink: 0,
   },
   nickname: { fontSize: 18, fontWeight: 700, color: COLORS.text },
-  headerActions: { position: 'relative', display: 'flex', alignItems: 'center', gap: 8 },
-  dropdown: {
-    position: 'absolute',
-    top: 52,
-    right: 0,
-    width: 300,
-    background: COLORS.bg,
-    borderRadius: 18,
-    padding: 14,
-    // 홈 위에 겹쳐 뜨는 오버레이라 목업대로 옅은 그림자를 준다 (타일은 계속 flat 유지).
-    boxShadow: '0 10px 28px rgba(0,0,0,0.12)',
-    zIndex: 20,
-    textAlign: 'left',
-  },
-  dropdownHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  dropdownTitle: { fontSize: 16, fontWeight: 700, color: COLORS.text },
-  markAllButton: {
-    background: 'none',
-    border: 'none',
-    padding: 0,
-    fontSize: 12,
-    color: COLORS.textSub,
-    fontFamily: 'inherit',
-    cursor: 'pointer',
-  },
-  notificationItem: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-    borderRadius: 12,
-    padding: 10,
-    marginBottom: 8,
-  },
-  notificationAvatar: {
-    width: 34,
-    height: 34,
-    borderRadius: 999,
-    background: COLORS.pink,
-    flexShrink: 0,
-  },
-  notificationText: { fontSize: 13.5, fontWeight: 700, color: COLORS.text },
-  notificationTime: { fontSize: 11.5, color: COLORS.textSub, marginTop: 2 },
   iconButton: {
     position: 'relative',
     width: 42,
@@ -438,24 +268,6 @@ const styles = {
     justifyContent: 'center',
     cursor: 'pointer',
     padding: 0,
-  },
-  iconButtonActive: { background: '#1A1A1A', border: '1px solid #1A1A1A' },
-  headerBadge: {
-    position: 'absolute',
-    top: -6,
-    right: -6,
-    minWidth: 20,
-    height: 20,
-    padding: '0 5px',
-    borderRadius: 999,
-    background: COLORS.badge,
-    color: '#FFFFFF',
-    fontSize: 11,
-    fontWeight: 700,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxSizing: 'border-box',
   },
   lockedArea: {
     display: 'flex',
