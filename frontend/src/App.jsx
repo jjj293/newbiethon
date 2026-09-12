@@ -5,10 +5,11 @@ import ProfilePage from './pages/ProfilePage'
 import HomeScreen from './pages/HomeScreen'
 import LifestylePreferencesPage from './pages/LifestylePreferencesPage'
 import ProfileConfirm from './pages/ProfileConfirm'
+import { getUser } from './api'
 
 function App() {
   const [userId, setUserId] = useState(() => localStorage.getItem('user_id'))
-  const [screen, setScreen] = useState(() => (localStorage.getItem('user_id') ? 'profile' : 'home'))
+  const [screen, setScreen] = useState('home')
   const [nickname, setNickname] = useState('')
 
   if (screen === 'home') {
@@ -18,9 +19,14 @@ function App() {
   if (screen === 'login') {
     return (
       <LoginPage
-        onLoginSuccess={(id) => {
+        onLoginSuccess={async (id) => {
           setUserId(id)
-          setScreen('profile')
+          try {
+            const data = await getUser(id)
+            setScreen(data.gender === null ? 'profile' : 'homeLocked')
+          } catch (error) {
+            console.error(error)
+          }
         }}
       />
     )
