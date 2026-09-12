@@ -1,0 +1,143 @@
+.survey-screen {
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px;
+}
+
+.survey-card {
+  width: 100%;
+  max-width: 480px;
+  text-align: left;
+  margin: 40px auto;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.survey-progress {
+  color: var(--text);
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.survey-time {
+  color: var(--text);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.survey-situation {
+  white-space: pre-line;
+  margin-bottom: 16px;
+}
+
+.survey-question {
+  font-weight: 600;
+  color: var(--text-h);
+  margin-bottom: 16px;
+}
+
+.survey-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.survey-choice,
+.ox-choice,
+.budget-choice,
+.submit-button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.survey-choice {
+  text-align: left;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.survey-choice:hover {
+  border-color: var(--accent-border);
+  background: var(--accent-bg);
+}
+
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-question {
+  font-weight: 600;
+  color: var(--text-h);
+  margin-bottom: 12px;
+}
+
+.ox-choices {
+  display: flex;
+  gap: 8px;
+}
+
+.ox-choice {
+  width: 56px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.ox-choice.selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--accent);
+}
+
+.budget-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.budget-choice {
+  text-align: left;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.budget-choice.selected {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.notes-input {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-h);
+  font: inherit;
+  box-sizing: border-box;
+  resize: vertical;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+}
+
+.submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
