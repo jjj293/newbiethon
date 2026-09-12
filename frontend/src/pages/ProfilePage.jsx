@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import '../App.css'
 import './ProfilePage.css'
-import { updateUserProfile } from '../api'
+import { saveProfile } from '../api'
 
 const REGIONS = [
   { name: '안암', tone: 'main' },
@@ -9,31 +9,6 @@ const REGIONS = [
   { name: '종암', tone: '3' },
   { name: '제기동', tone: '4' },
 ]
-
-// 이 화면(기본 프로필)은 gender/age/is_smoker/regions만 다룬다.
-// PUT /users/{user_id}는 lifestyle/preferences도 필수로 요구하므로, 아직 입력받지 않은
-// 값은 자리표시자로 채워 보내고, 이후 LifestylePreferencesPage에서 실제 값으로 덮어쓴다.
-function buildPlaceholderPayload({ gender, age, isSmoker, regions }) {
-  return {
-    gender,
-    age,
-    is_smoker: isSmoker,
-    regions,
-    lifestyle: {
-      noise: 8,
-      cleanliness: 8,
-      sleep: 8,
-      privacy: 8,
-      conflict: 8,
-      social: 8,
-    },
-    preferences: {
-      guest_allowed: false,
-      pet_allowed: false,
-    },
-    budgets: [],
-  }
-}
 
 function IconPerson() {
   return (
@@ -88,7 +63,7 @@ function ProfilePage({ userId }) {
   const [gender, setGender] = useState(null)
   const [age, setAge] = useState('')
   const [regions, setRegions] = useState([])
-  const [isSmoker, setIsSmoker] = useState(null)
+  const [smoking, setSmoking] = useState(null)
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState('')
 
@@ -103,7 +78,7 @@ function ProfilePage({ userId }) {
     if (gender === null) return '성별을 선택해주세요.'
     if (age.trim() === '' || !/^[1-9]\d*$/.test(age.trim())) return '올바른 나이를 입력해주세요.'
     if (regions.length === 0) return '희망 거주 지역을 1개 이상 선택해주세요.'
-    if (isSmoker === null) return '흡연 여부를 선택해주세요.'
+    if (smoking === null) return '흡연 여부를 선택해주세요.'
     return null
   }
 
@@ -116,13 +91,24 @@ function ProfilePage({ userId }) {
     }
 
     try {
-      const payload = buildPlaceholderPayload({ gender, age: Number(age), isSmoker, regions })
-      await updateUserProfile(userId, payload)
-      setMessageType('success')
-      setMessage('기본 프로필이 저장되었습니다.')
-    } catch (error) {
+      const data = await saveProfile({
+        user_id: userId,
+        nickname: nickname.trim(),
+        gender,
+        age: Number(age),
+        preferred_regions: regions,
+        smoking,
+      })
+      if (data.success) {
+        setMessageType('success')
+        setMessage(data.message || '프로필이 저장되었습니다.')
+      } else {
+        setMessageType('error')
+        setMessage(data.message || '프로필 저장에 실패했습니다.')
+      }
+    } catch {
       setMessageType('error')
-      setMessage(error.message || '프로필 저장에 실패했습니다.')
+      setMessage('서버와 통신 중 오류가 발생했습니다.')
     }
   }
 
@@ -194,16 +180,16 @@ function ProfilePage({ userId }) {
           <div className="profile-option-grid">
             <button
               type="button"
-              className={`profile-option profile-option--tone-main ${isSmoker === false ? 'selected' : ''}`}
-              onClick={() => setIsSmoker(false)}
+              className={`profile-option profile-option--tone-main ${smoking === false ? 'selected' : ''}`}
+              onClick={() => setSmoking(false)}
             >
               <span className="profile-option-icon"><IconNoSmoke /></span>
               <span>비흡연</span>
             </button>
             <button
               type="button"
-              className={`profile-option profile-option--tone-3 ${isSmoker === true ? 'selected' : ''}`}
-              onClick={() => setIsSmoker(true)}
+              className={`profile-option profile-option--tone-3 ${smoking === true ? 'selected' : ''}`}
+              onClick={() => setSmoking(true)}
             >
               <span className="profile-option-icon"><IconSmoke /></span>
               <span>흡연</span>

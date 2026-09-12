@@ -2,16 +2,17 @@ import { useState } from 'react'
 import '../App.css'
 import { loginUser, registerUser } from '../api'
 
-function LoginPage() {
+function LoginPage({ onLoginSuccess }) {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState('')
 
-  const showResult = (data, successPrefix) => {
+  const showResult = (data, successPrefix, onSuccess) => {
     if (data.success) {
       setMessageType('success')
       setMessage(`${successPrefix} (user_id: ${data.user_id})`)
+      onSuccess?.(data.user_id)
     } else {
       setMessageType('error')
       setMessage(data.message || '요청에 실패했습니다.')
@@ -28,7 +29,10 @@ function LoginPage() {
     }
     try {
       const data = await loginUser(username, password)
-      showResult(data, '로그인 성공')
+      showResult(data, '로그인 성공', (userId) => {
+        localStorage.setItem('user_id', userId)
+        onLoginSuccess?.(userId)
+      })
     } catch {
       setMessageType('error')
       setMessage('서버와 통신 중 오류가 발생했습니다.')
