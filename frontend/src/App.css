@@ -1,43 +1,116 @@
+/* ============================================================
+   '로그인' 제목 폰트: 산돌구름 웹폰트 서비스 (SD PixelGoodmorning, '퍼즐체')
+   실제 @font-face는 index.html에 넣은 산돌구름 CDN <link>가 내려준다.
+   해당 도메인이 산돌구름 웹폰트 프로젝트에 등록되기 전까지는 폰트가 로드되지
+   않으므로, 등록 전에도 화면이 어색하지 않도록 구글 폰트(Jua)를 폴백으로 둔다.
+   (@import는 CSS 규칙상 파일 맨 앞에 와야 동작한다)
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+
+/* ============================================================
+   컬러 팔레트 (로그인 화면 전용)
+   ============================================================ */
+:root {
+  --login-bg: #ffffff;
+  --login-text: #1a1a1a; /* 기본 텍스트 (거의 검정) */
+  --login-text-muted: #8a8a8a; /* 보조 텍스트 (회색) */
+  --login-point-main: #a8e56c; /* 메인 포인트: 파스텔 연두 */
+  --login-point-2: #ffb4c6; /* 포인트2: 파스텔 핑크 */
+  --login-point-3: #ffe07d; /* 포인트3: 파스텔 노랑 */
+  --login-point-4: #8fd9ff; /* 포인트4: 파스텔 하늘색 */
+}
+
 .status-screen {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100svh;
-  gap: 12px;
+  gap: 20px;
   text-align: center;
+  background: var(--login-bg);
+}
+
+.login-title {
+  font-family: 'SD PixelGoodmorning', 'Jua', sans-serif;
+  font-size: 44px;
+  font-weight: 400;
+  color: var(--login-text);
+  margin: 0;
 }
 
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  width: 260px;
+  gap: 14px;
+  width: 300px;
 }
 
-.login-form input {
-  padding: 8px 10px;
+/* ID / PW 입력칸: 길쭉한 직사각형 + 둥근 모서리, 위아래로 나란히 배치 */
+.login-input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 15px 20px;
   font-size: 15px;
+  color: var(--login-text);
+  background: var(--login-bg);
+  border-radius: 16px;
+  border: 2px solid #eeeeee;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.login-input::placeholder {
+  color: var(--login-text-muted);
+}
+
+.login-input--id:focus {
+  border-color: var(--login-point-4);
+  box-shadow: 0 0 0 3px rgba(143, 217, 255, 0.28);
+}
+
+.login-input--password:focus {
+  border-color: var(--login-point-2);
+  box-shadow: 0 0 0 3px rgba(255, 180, 198, 0.28);
 }
 
 .login-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .login-actions button {
   flex: 1;
+  border: none;
+  border-radius: 14px;
+  padding: 13px 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--login-text);
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.05s ease;
+}
+
+.login-actions button:active {
+  transform: translateY(1px);
+}
+
+.login-actions button:first-child {
+  background: var(--login-point-main);
+}
+
+.login-actions button:last-child {
+  background: var(--login-point-3);
+}
+
+.login-actions button:hover {
+  filter: brightness(0.96);
 }
 
 .message {
   margin: 0;
-  font-size: 14px;
-}
-
-.message.success {
-  color: green;
-}
-
-.message.error {
-  color: red;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--login-text);
 }
