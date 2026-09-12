@@ -1,14 +1,25 @@
 import { useState } from "react";
 
 /* ============================================================
-   더미 데이터 (나중에 FastAPI 연동 시 여기를 fetch 결과로 교체)
-   예상 엔드포인트: GET /api/matching/result?userId=xxx
-   응답 형식을 아래 구조랑 맞춰달라고 C(로직 담당)한테 전달하면 됨
+   ⚠️ DUMMY DATA — 화면 개발용 임시 데이터입니다.
+   C의 실제 궁합 계산 알고리즘 결과가 아니며, 아래 구조는
+   팀 공식 API 규격이 아닙니다 (아직 미확정).
+
+   [C와 협의 필요한 사항]
+   - Endpoint / Method (예상: GET 계열, 미확정)
+   - Request: user_id 기준으로 조회한다고 가정 (미확정)
+   - Response 필드명 전체 (score, goodPoints, badPoints,
+     region, lifestyle, preferences 등 전부 임시 이름)
+   - "잘 맞는 정도" / "보완되는 정도" 두 점수의 정확한 필드명과
+     계산 기준 (규칙 12: C와 팀에서 별도 합의)
+
+   실제 연동 시 user_id를 기준으로 사용자를 식별해야 하며
+   (규칙 3), JSON 필드명은 최종적으로 snake_case로 맞춰야 합니다.
 ============================================================ */
 const dummyMatches = {
-  궁합형: [
+  compatible: [
     {
-      id: "u1",
+      user_id: "u1",
       nickname: "고요한숲",
       age: 21,
       gender: "여",
@@ -28,7 +39,7 @@ const dummyMatches = {
       },
     },
     {
-      id: "u2",
+      user_id: "u2",
       nickname: "느긋한고양이",
       age: 22,
       gender: "여",
@@ -45,7 +56,7 @@ const dummyMatches = {
       },
     },
     {
-      id: "u3",
+      user_id: "u3",
       nickname: "잔잔한파도",
       age: 20,
       gender: "여",
@@ -62,9 +73,9 @@ const dummyMatches = {
       },
     },
   ],
-  보완형: [
+  complementary: [
     {
-      id: "u4",
+      user_id: "u4",
       nickname: "활발한다람쥐",
       age: 23,
       gender: "여",
@@ -81,7 +92,7 @@ const dummyMatches = {
       },
     },
     {
-      id: "u5",
+      user_id: "u5",
       nickname: "든든한바위",
       age: 21,
       gender: "여",
@@ -98,7 +109,7 @@ const dummyMatches = {
       },
     },
     {
-      id: "u6",
+      user_id: "u6",
       nickname: "따뜻한코코아",
       age: 22,
       gender: "여",
@@ -122,21 +133,26 @@ const MAX_SELECT = 2;
 export default function MatchingResult() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [detailPerson, setDetailPerson] = useState(null);
+  const [showLimitWarning, setShowLimitWarning] = useState(false);
   // 각 후보별 진행 상태: null | "requested" | "accepted" | "declined"
   const [requestStatus, setRequestStatus] = useState({});
-
-  const allPeople = [...dummyMatches.궁합형, ...dummyMatches.보완형];
 
   function toggleSelect(id) {
     setSelectedIds((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= MAX_SELECT) return prev; // 2명 초과 선택 방지
+      if (prev.length >= MAX_SELECT) {
+        setShowLimitWarning(true);
+        setTimeout(() => setShowLimitWarning(false), 2000);
+        return prev; // 2명 초과 선택 방지
+      }
       return [...prev, id];
     });
   }
 
   function sendRequest(id) {
-    // TODO: 실제로는 여기서 POST /api/matching/request { targetId: id } 호출
+    // ⚠️ 임시 데이터 구조 — 실제 연동 시 A/C와 협의 후 최종 endpoint,
+    // request body(user_id, target_user_id 등 필드명 포함) 확정 필요.
+    // 아직 팀 공식 API 규격 아님.
     setRequestStatus((prev) => ({ ...prev, [id]: "requested" }));
 
     // 데모용: 2초 뒤 상대가 랜덤하게 수락/거절하는 것처럼 시뮬레이션
@@ -151,6 +167,10 @@ export default function MatchingResult() {
 
   return (
     <div style={styles.page}>
+      {showLimitWarning && (
+        <div style={styles.limitToast}>이미 {MAX_SELECT}명을 선택했어요</div>
+      )}
+
       <header style={styles.header}>
         <h1 style={styles.title}>당신과 맞는 룸메이트</h1>
         <p style={styles.subtitle}>
@@ -161,7 +181,7 @@ export default function MatchingResult() {
       <Section
         label="궁합형"
         description="생활 패턴이 비슷한 사람들이에요"
-        people={dummyMatches.궁합형}
+        people={dummyMatches.compatible}
         selectedIds={selectedIds}
         requestStatus={requestStatus}
         onCardClick={setDetailPerson}
@@ -171,7 +191,7 @@ export default function MatchingResult() {
       <Section
         label="보완형"
         description="다르지만 서로를 보완해줄 수 있는 사람들이에요"
-        people={dummyMatches.보완형}
+        people={dummyMatches.complementary}
         selectedIds={selectedIds}
         requestStatus={requestStatus}
         onCardClick={setDetailPerson}
@@ -215,14 +235,14 @@ function Section({
       <div style={styles.cardGrid}>
         {people.map((person) => (
           <MatchCard
-            key={person.id}
+            key={person.user_id}
             person={person}
-            selected={selectedIds.includes(person.id)}
-            status={requestStatus[person.id]}
+            selected={selectedIds.includes(person.user_id)}
+            status={requestStatus[person.user_id]}
             onClick={() => onCardClick(person)}
             onToggleSelect={(e) => {
               e.stopPropagation();
-              onToggleSelect(person.id);
+              onToggleSelect(person.user_id);
             }}
           />
         ))}
@@ -409,6 +429,20 @@ function DetailModal({ person, onClose }) {
    스타일 (인라인 객체 — Tailwind 등 추가 설정 없이 바로 동작)
 ============================================================ */
 const styles = {
+  limitToast: {
+    position: "fixed",
+    top: 20,
+    left: "50%",
+    transform: "translateX(-50%)",
+    background: "#C0392B",
+    color: "#FFFFFF",
+    fontSize: 13.5,
+    fontWeight: 700,
+    padding: "10px 18px",
+    borderRadius: 999,
+    boxShadow: "0 8px 20px rgba(192,57,43,0.35)",
+    zIndex: 100,
+  },
   page: {
     fontFamily: "'Pretendard', 'Apple SD Gothic Neo', sans-serif",
     background: "#FAF7F2",
