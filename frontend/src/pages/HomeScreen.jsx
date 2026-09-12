@@ -23,7 +23,7 @@ const dummyCounts = {
   unread_notifications: 2,
 }
 
-const COLORS = {
+export const COLORS = {
   bg: '#FFFFFF',
   text: '#1A1A1A',
   textSub: '#8A8A8A',
