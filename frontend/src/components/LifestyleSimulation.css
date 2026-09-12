@@ -1,0 +1,249 @@
+/* 레트로 픽셀 비주얼노벨 스타일. 색상/여백 값은 CSS 변수로 분리해서
+   나중에 값만 바꿔도 전체 톤을 조정할 수 있게 했다. */
+:root {
+  --vn-bg-color: #ffffff;
+  --vn-dialog-bg: rgba(232, 213, 245, 0.85);
+  --vn-dialog-border: #1a1a1a;
+  --vn-name-bg: #6b46c1;
+  --vn-name-text: #ffffff;
+  --vn-text-color: #2a2a2a;
+  --vn-text-muted: #5a5a5a;
+  --vn-choice-bg: #ffffff;
+  --vn-choice-border: #1a1a1a;
+  --vn-choice-hover-bg: #dff3ff;
+  --vn-choice-hover-border: #2b6fb3;
+  --vn-choice-selected-bg: #bfe6ff;
+  --vn-accent: #ff6fae;
+  --vn-font: 'Courier New', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --vn-pixel-shadow: 4px 4px 0 var(--vn-dialog-border);
+}
+
+.vn-root {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  background: var(--vn-bg-color);
+  font-family: var(--vn-font);
+  color: var(--vn-text-color);
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.vn-character-area {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px 16px 0;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.vn-character {
+  max-width: min(50vw, 280px);
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  margin-bottom: -6px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.vn-dialog-wrap {
+  flex: 0 0 auto;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 0 16px 16px;
+  box-sizing: border-box;
+}
+
+.vn-dialog {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  background: var(--vn-dialog-bg);
+  border: 4px solid var(--vn-dialog-border);
+  box-shadow: var(--vn-pixel-shadow);
+  border-radius: 10px;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.vn-nameplate {
+  background: var(--vn-name-bg);
+  color: var(--vn-name-text);
+  border-bottom: 3px solid var(--vn-dialog-border);
+  padding: 10px 18px;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.vn-body {
+  padding: 16px 20px 18px;
+  box-sizing: border-box;
+}
+
+.vn-progress {
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--vn-text-muted);
+  margin: 0 0 10px;
+}
+
+.vn-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--vn-text-muted);
+  border-bottom: 2px dashed var(--vn-dialog-border);
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+}
+
+.vn-title {
+  font-weight: 700;
+}
+
+.vn-situation {
+  white-space: pre-line;
+  font-size: clamp(15px, 2.2vw, 18px);
+  line-height: 1.6;
+  margin: 0 0 12px;
+}
+
+.vn-question {
+  font-weight: 700;
+  font-size: clamp(15px, 2.2vw, 18px);
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.vn-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.vn-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--vn-text-color);
+  background: var(--vn-choice-bg);
+  border: 3px solid var(--vn-choice-border);
+  box-shadow: 3px 3px 0 var(--vn-dialog-border);
+  border-radius: 8px;
+  padding: 12px 14px;
+  min-height: 48px;
+  cursor: pointer;
+}
+
+.vn-choice:hover {
+  background: var(--vn-choice-hover-bg);
+  border-color: var(--vn-choice-hover-border);
+}
+
+.vn-choice.is-selected {
+  background: var(--vn-choice-selected-bg);
+  border-color: var(--vn-choice-border);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--vn-dialog-border);
+}
+
+.vn-choice-label {
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.vn-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.vn-next-button {
+  font: inherit;
+  font-size: 18px;
+  line-height: 1;
+  color: #fff;
+  background: var(--vn-name-bg);
+  border: 3px solid var(--vn-dialog-border);
+  box-shadow: 3px 3px 0 var(--vn-dialog-border);
+  border-radius: 8px;
+  width: 48px;
+  height: 44px;
+  cursor: pointer;
+}
+
+.vn-next-button:not(:disabled):hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0 var(--vn-dialog-border);
+}
+
+.vn-next-button:disabled {
+  opacity: 0.4;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .vn-character {
+    max-width: 42vw;
+  }
+
+  .vn-situation,
+  .vn-question {
+    font-size: 15px;
+  }
+
+  .vn-choice {
+    font-size: 13px;
+    padding: 12px;
+  }
+}
+
+@media (max-height: 700px) {
+  .vn-character-area {
+    padding-top: 8px;
+  }
+
+  .vn-nameplate {
+    padding: 6px 16px;
+  }
+
+  .vn-body {
+    padding: 10px 16px 12px;
+  }
+
+  .vn-meta-row {
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+  }
+
+  .vn-situation {
+    margin-bottom: 8px;
+  }
+
+  .vn-question {
+    margin-bottom: 10px;
+  }
+
+  .vn-choices {
+    gap: 6px;
+    margin-bottom: 10px;
+  }
+
+  .vn-choice {
+    min-height: 40px;
+    padding: 8px 12px;
+  }
+}
