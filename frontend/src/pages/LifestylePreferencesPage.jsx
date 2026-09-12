@@ -2,26 +2,46 @@ import { useState } from 'react'
 import './LifestylePreferencesPage.css'
 import LifestyleSimulation from '../components/LifestyleSimulation'
 import PreferencesStep from '../components/PreferencesStep'
-import { submitLifestylePreferences } from '../api'
+import { getUser, updateUserProfile } from '../api'
 
 // lifestyleAnswers: { [questionId]: { lifestyle_key, choice, score } }
-// housingConditions: { guest_allowed, pet_allowed, budget, notes }
-// 여기서는 문제별 원본 점수만 모아 보낼 뿐, noise/cleanliness/... 최종 합산은 하지 않는다.
-// 최종 합산은 이 데이터를 받는 쪽(백엔드 또는 추후 로직)에서 구현한다.
-function buildSurveyPayload(user_id, lifestyleAnswers, housingConditions) {
+// 문제당 점수는 2/4/6/8이고 항목당 문제가 2개이므로, 합산하면 noise 등 각 항목이 4~16 범위가 되어
+// 백엔드(schemas.LifestyleCreate)가 요구하는 0~16 범위를 만족한다.
+function aggregateLifestyleScores(lifestyleAnswers) {
+  const totals = {}
+  for (const answer of Object.values(lifestyleAnswers)) {
+    totals[answer.lifestyle_key] = (totals[answer.lifestyle_key] || 0) + answer.score
+  }
+  return totals
+}
+
+// 고정 조합(예: 보증금 100 / 월세 30)을 매칭 팀 스키마의 min/max 범위로 변환한다.
+// (지금은 화면에서 범위를 따로 입력받지 않고 고정 조합만 선택하므로 min == max)
+function toBudgetRange(budget) {
   return {
-    user_id,
-    lifestyle_answers: Object.entries(lifestyleAnswers).map(([questionId, answer]) => ({
-      question_id: questionId,
-      lifestyle_key: answer.lifestyle_key,
-      score: answer.score,
-    })),
-    housing_conditions: {
+    deposit_min: budget.deposit,
+    deposit_max: budget.deposit,
+    monthly_rent_min: budget.monthly_rent,
+    monthly_rent_max: budget.monthly_rent,
+  }
+}
+
+// gender/age/is_smoker/regions는 이 화면이 다루는 데이터가 아니라 프로필 화면 담당이다.
+// PUT /users/{user_id}가 이 값들을 필수로 요구하므로, 제출 전 GET으로 기존 값을 읽어와 그대로 유지하고
+// lifestyle/preferences/budgets만 이번 제출 값으로 교체한다.
+function buildProfileUpdatePayload(existingUser, lifestyleAnswers, housingConditions) {
+  return {
+    gender: existingUser.gender,
+    age: existingUser.age,
+    is_smoker: existingUser.isSmoker,
+    regions: existingUser.regions,
+    lifestyle: aggregateLifestyleScores(lifestyleAnswers),
+    preferences: {
       guest_allowed: housingConditions.guest_allowed,
       pet_allowed: housingConditions.pet_allowed,
-      budget: housingConditions.budget,
       notes: housingConditions.notes,
     },
+    budgets: housingConditions.budget.map(toBudgetRange),
   }
 }
 
@@ -39,13 +59,11 @@ function LifestylePreferencesPage({ user_id }) {
   }
 
   async function handlePreferencesComplete(housingConditions) {
-    const payload = buildSurveyPayload(user_id, lifestyleAnswers, housingConditions)
     setStatus('submitting')
     try {
-      const data = await submitLifestylePreferences(payload)
-      if (!data.success) {
-        throw new Error(data.message || '제출에 실패했습니다.')
-      }
+      const existingUser = await getUser(user_id)
+      const payload = buildProfileUpdatePayload(existingUser, lifestyleAnswers, housingConditions)
+      await updateUserProfile(user_id, payload)
       setStatus('success')
     } catch (error) {
       setErrorMessage(error.message)
