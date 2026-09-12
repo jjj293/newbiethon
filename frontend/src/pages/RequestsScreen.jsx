@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { COLORS } from './HomeScreen'
+import { COLORS } from './theme'
 
 /* ============================================================
    요청 화면 3종 (D 담당)
@@ -98,32 +98,23 @@ const STATUS_LABEL = {
   declined: '거절됨',
 }
 
-export default function RequestsScreen({ view = 'received', onBack, onViewProfile }) {
-  const [received, setReceived] = useState(dummyReceived)
-  const [sent] = useState(dummySent)
-  const [matched, setMatched] = useState(dummyMatched)
-  // 수락 버튼을 누른 직후 오버레이에 띄울 상대. "확인"을 눌러야 목록이 이동한다.
+export default function RequestsScreen({
+  view = 'received',
+  received = dummyReceived,
+  sent = dummySent,
+  matched = dummyMatched,
+  onAccept,
+  onDecline,
+  onBack,
+  onViewProfile,
+}) {
+  // 목록은 부모(홈 화면)가 들고 있다. 여기서 따로 복사해 두면 화면을 오갈 때
+  // 수락/거절 결과가 되돌아가 버린다.
+  // 수락 버튼을 누른 직후 오버레이에 띄울 상대만 이 화면의 상태다.
   const [pendingAccept, setPendingAccept] = useState(null)
 
-  const declineRequest = (requestId) =>
-    setReceived((prev) => prev.filter((r) => r.request_id !== requestId))
-
   const confirmAccept = () => {
-    const person = pendingAccept
-    setReceived((prev) => prev.filter((r) => r.request_id !== person.request_id))
-    setMatched((prev) => [
-      ...prev,
-      {
-        // match_id 는 서버가 발급하는 값이라 프론트에서 만들지 않는다.
-        // 한 사람은 매칭 목록에 한 번만 들어가므로 화면에서는 user_id 로 식별한다.
-        user_id: person.from_user_id,
-        nickname: person.nickname,
-        age: person.age,
-        gender: person.gender,
-        score: person.score,
-        contact: person.contact,
-      },
-    ])
+    onAccept?.(pendingAccept)
     setPendingAccept(null)
   }
 
@@ -160,7 +151,7 @@ export default function RequestsScreen({ view = 'received', onBack, onViewProfil
                 <button
                   type="button"
                   style={styles.declineButton}
-                  onClick={() => declineRequest(person.request_id)}
+                  onClick={() => onDecline?.(person)}
                 >
                   거절
                 </button>

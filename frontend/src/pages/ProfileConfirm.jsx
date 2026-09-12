@@ -1,4 +1,4 @@
-import { COLORS } from './HomeScreen'
+import { COLORS } from './theme'
 
 /* ============================================================
    프로필 완성 확인 화면 (D 담당)
