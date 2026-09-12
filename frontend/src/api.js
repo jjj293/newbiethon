@@ -16,3 +16,7 @@ export function registerUser(username, password) {
 export function loginUser(username, password) {
   return postJson('/auth/login', { username, password })
 }
+
+export function submitLifestylePreferences(payload) {
+  return postJson('/lifestyle-preferences', payload)
+}

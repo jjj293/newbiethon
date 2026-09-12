@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { preferenceQuestions, budgetOptions } from '../data/preferencesConfig'
 
 function isSameBudget(a, b) {
-  return a.deposit === b.deposit && a.monthlyRent === b.monthlyRent
+  return a.deposit === b.deposit && a.monthly_rent === b.monthly_rent
 }
 
 // preferences 입력 (구글폼 스타일): 방문/반려동물 O-X, 예산 조합 다중 선택, 특이사항 주관식
@@ -68,11 +68,11 @@ function PreferencesStep({ onComplete }) {
             return (
               <button
                 type="button"
-                key={`${option.deposit}-${option.monthlyRent}`}
+                key={`${option.deposit}-${option.monthly_rent}`}
                 className={`budget-choice ${isSelected ? 'selected' : ''}`}
                 onClick={() => toggleBudget(option)}
               >
-                보증금 {option.deposit}만원 / 월세 {option.monthlyRent}만원
+                보증금 {option.deposit}만원 / 월세 {option.monthly_rent}만원
               </button>
             )
           })}
