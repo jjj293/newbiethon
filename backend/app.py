@@ -1,21 +1,26 @@
-import sqlite3
+"""
+로그인/회원가입 기능을 담당하는 라우터 모듈.
 
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
+FastAPI() 앱을 직접 만들지 않고 APIRouter로 정의해서,
+main.py에서 매칭 API와 한 서버 + 한 DB 테이블(User)로 합쳐 쓴다.
+
+회원가입 시점에는 User row를 "계정 정보만" 채워서 만든다.
+gender/age/lifestyle 등 매칭에 필요한 프로필 정보는 아직 비어있고,
+나중에 main.py의 PUT /users/{user_id} 로 채워 넣는다.
+"""
+
+import hashlib
+import os
+import uuid
+
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
-from database import get_connection, init_db
+import models
+from database import get_db
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-init_db()
+router = APIRouter()
 
 
 class AuthRequest(BaseModel):
@@ -23,117 +28,43 @@ class AuthRequest(BaseModel):
     password: str
 
 
-@app.get("/health")
+def _hash_password(password: str, salt: bytes | None = None) -> str:
+    """비밀번호를 평문으로 저장하지 않기 위해 salt + PBKDF2로 해싱한다."""
+    salt = salt or os.urandom(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, 100_000)
+    return salt.hex() + ":" + digest.hex()
+
+
+def _verify_password(password: str, stored: str) -> bool:
+    salt_hex, _, _ = stored.partition(":")
+    salt = bytes.fromhex(salt_hex)
+    return _hash_password(password, salt) == stored
+
+
+@router.get("/health")
 def health():
     return {"status": "ok"}
 
 
-@app.post("/auth/register")
-def register(payload: AuthRequest):
-    # NOTE: 해커톤 MVP 범위로 비밀번호를 평문 저장한다.
-    # 실제 서비스로 확장할 경우 bcrypt 등 안전한 해싱으로 반드시 교체해야 한다.
-    conn = get_connection()
-    try:
-        cursor = conn.execute(
-            "INSERT INTO users (username, password) VALUES (?, ?)",
-            (payload.username, payload.password),
-        )
-        conn.commit()
-        return {"success": True, "user_id": cursor.lastrowid}
-    except sqlite3.IntegrityError:
+@router.post("/auth/register")
+def register(payload: AuthRequest, db: Session = Depends(get_db)):
+    existing = db.query(models.User).filter(models.User.username == payload.username).first()
+    if existing is not None:
         return {"success": False, "message": "이미 사용 중인 아이디입니다."}
-    finally:
-        conn.close()
+
+    user = models.User(
+        id=str(uuid.uuid4()),
+        username=payload.username,
+        password_hash=_hash_password(payload.password),
+    )
+    db.add(user)
+    db.commit()
+    return {"success": True, "user_id": user.id}
 
 
-@app.post("/auth/login")
-def login(payload: AuthRequest):
-    conn = get_connection()
-    row = conn.execute(
-        "SELECT user_id, password FROM users WHERE username = ?",
-        (payload.username,),
-    ).fetchone()
-    conn.close()
-
-    if row is None or row["password"] != payload.password:
+@router.post("/auth/login")
+def login(payload: AuthRequest, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.username == payload.username).first()
+    if user is None or user.password_hash is None or not _verify_password(payload.password, user.password_hash):
         return {"success": False, "message": "아이디 또는 비밀번호가 올바르지 않습니다."}
-
-    return {"success": True, "user_id": row["user_id"]}
-
-
-class LifestyleAnswerIn(BaseModel):
-    question_id: str
-    lifestyle_key: str
-    score: int
-
-
-class BudgetIn(BaseModel):
-    deposit: int
-    monthly_rent: int
-
-
-class HousingConditionsIn(BaseModel):
-    guest_allowed: bool
-    pet_allowed: bool
-    budget: list[BudgetIn]
-    notes: str = ""
-
-
-class LifestylePreferencesSubmission(BaseModel):
-    user_id: int
-    lifestyle_answers: list[LifestyleAnswerIn]
-    housing_conditions: HousingConditionsIn
-
-
-# 문제별 원본 점수만 저장한다. noise/cleanliness/... 최종 합산은 여기서 하지 않고,
-# 이후 별도 집계 로직에서 lifestyle_answers 테이블을 읽어 계산할 예정이다.
-# 재제출 시 해당 user_id의 기존 데이터를 덮어쓴다 (사람당 최신 상태 하나만 유지).
-@app.post("/lifestyle-preferences")
-def submit_lifestyle_preferences(payload: LifestylePreferencesSubmission):
-    conn = get_connection()
-    try:
-        conn.execute(
-            "DELETE FROM lifestyle_answers WHERE user_id = ?", (payload.user_id,)
-        )
-        for answer in payload.lifestyle_answers:
-            conn.execute(
-                """
-                INSERT INTO lifestyle_answers (user_id, question_id, lifestyle_key, score)
-                VALUES (?, ?, ?, ?)
-                """,
-                (payload.user_id, answer.question_id, answer.lifestyle_key, answer.score),
-            )
-
-        conn.execute(
-            """
-            INSERT INTO housing_conditions (user_id, guest_allowed, pet_allowed, notes)
-            VALUES (?, ?, ?, ?)
-            ON CONFLICT(user_id) DO UPDATE SET
-                guest_allowed = excluded.guest_allowed,
-                pet_allowed = excluded.pet_allowed,
-                notes = excluded.notes
-            """,
-            (
-                payload.user_id,
-                payload.housing_conditions.guest_allowed,
-                payload.housing_conditions.pet_allowed,
-                payload.housing_conditions.notes,
-            ),
-        )
-
-        conn.execute(
-            "DELETE FROM budget_selections WHERE user_id = ?", (payload.user_id,)
-        )
-        for budget in payload.housing_conditions.budget:
-            conn.execute(
-                """
-                INSERT INTO budget_selections (user_id, deposit, monthly_rent)
-                VALUES (?, ?, ?)
-                """,
-                (payload.user_id, budget.deposit, budget.monthly_rent),
-            )
-
-        conn.commit()
-        return {"success": True, "user_id": payload.user_id}
-    finally:
-        conn.close()
+    return {"success": True, "user_id": user.id}

@@ -1,60 +1,32 @@
-import sqlite3
-from pathlib import Path
+"""
+DB 연결 설정 파일
 
-DB_PATH = Path(__file__).parent / "app.db"
+- SQLite 파일(roommate.db)에 연결하는 엔진을 만든다.
+- 요청 하나마다 사용할 DB 세션(SessionLocal)을 만든다.
+- 모든 모델(models.py)이 상속받을 Base 클래스를 만든다.
+
+로그인 계정 정보(username/password)도 이제 이 DB의 User 테이블에 함께 저장한다.
+(예전에 app.py가 따로 쓰던 raw-sqlite3 + app.db는 더 이상 쓰지 않는다.)
+"""
+
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///./roommate.db"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+)
+
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()
 
 
-def get_connection():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def init_db():
-    conn = get_connection()
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL UNIQUE,
-            password TEXT NOT NULL
-        )
-        """
-    )
-    # 문제별 원본 점수만 저장한다. noise/cleanliness/... 최종 합산은 여기서 하지 않는다.
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS lifestyle_answers (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            question_id TEXT NOT NULL,
-            lifestyle_key TEXT NOT NULL,
-            score INTEGER NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users (user_id)
-        )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS housing_conditions (
-            user_id INTEGER PRIMARY KEY,
-            guest_allowed BOOLEAN NOT NULL,
-            pet_allowed BOOLEAN NOT NULL,
-            notes TEXT DEFAULT '',
-            FOREIGN KEY (user_id) REFERENCES users (user_id)
-        )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS budget_selections (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL,
-            deposit INTEGER NOT NULL,
-            monthly_rent INTEGER NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users (user_id)
-        )
-        """
-    )
-    conn.commit()
-    conn.close()
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
