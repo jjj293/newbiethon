@@ -5,6 +5,7 @@ import ProfilePage from './pages/ProfilePage'
 import HomeScreen from './pages/HomeScreen'
 import LifestylePreferencesPage from './pages/LifestylePreferencesPage'
 import ProfileConfirm from './pages/ProfileConfirm'
+import MatchingResult from './pages/MatchingResult'
 
 function App() {
   const [userId, setUserId] = useState(() => localStorage.getItem('user_id'))
@@ -61,7 +62,16 @@ function App() {
     return <ProfileConfirm onConfirm={() => setScreen('homeUnlocked')} />
   }
 
-  return <HomeScreen user={{ nickname: nickname || '사용자', profile_completed: true }} />
+  if (screen === 'matching') {
+    return <MatchingResult onBack={() => setScreen('homeUnlocked')} />
+  }
+
+  return (
+    <HomeScreen
+      user={{ nickname: nickname || '사용자', profile_completed: true }}
+      onGoMatching={() => setScreen('matching')}
+    />
+  )
 }
 
 export default App

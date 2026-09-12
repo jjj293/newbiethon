@@ -130,7 +130,7 @@ const dummyMatches = {
 
 const MAX_SELECT = 2;
 
-export default function MatchingResult() {
+export default function MatchingResult({ onBack }) {
   const [selectedIds, setSelectedIds] = useState([]);
   const [detailPerson, setDetailPerson] = useState(null);
   const [showLimitWarning, setShowLimitWarning] = useState(false);
@@ -172,6 +172,11 @@ export default function MatchingResult() {
       )}
 
       <header style={styles.header}>
+        {onBack && (
+          <button type="button" style={styles.backButton} onClick={onBack}>
+            ← 뒤로
+          </button>
+        )}
         <h1 style={styles.title}>당신과 맞는 룸메이트</h1>
         <p style={styles.subtitle}>
           최대 {MAX_SELECT}명까지 선택할 수 있어요 · 현재 {selectedIds.length}/{MAX_SELECT}명 선택
@@ -452,6 +457,16 @@ const styles = {
     margin: "0 auto",
   },
   header: { marginBottom: 28 },
+  backButton: {
+    background: "none",
+    border: "none",
+    color: "#8C8375",
+    fontSize: 13.5,
+    fontWeight: 600,
+    padding: 0,
+    marginBottom: 12,
+    cursor: "pointer",
+  },
   title: { fontSize: 24, fontWeight: 700, color: "#2B2620", margin: 0 },
   subtitle: { fontSize: 13, color: "#8C8375", marginTop: 6 },
   section: { marginBottom: 32 },
