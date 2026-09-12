@@ -62,8 +62,7 @@ function LifestyleSimulation({ nickname, onComplete }) {
                   className={`vn-choice ${selectedChoice?.label === choice.label ? 'is-selected' : ''}`}
                   onClick={() => setSelectedChoice(choice)}
                 >
-                  <span className="vn-choice-label">[{choice.label}]</span>
-                  <span className="vn-choice-text">{choice.text}</span>
+                  {choice.text}
                 </button>
               ))}
             </div>
